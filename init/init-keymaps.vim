@@ -252,6 +252,12 @@ endif
 "调整module定义中的逗号和注释的位置（定义中不包含input、output时使用）
 :map <F9> 0f,i                                                    <ESC>056ldwa        <ESC>dw<ESC>^j
 
+"----------------------------------------------------------------------
+"快速注释
+:map <C-c> <ESC><leader>c<space><CR>a
+let t:RtlTreeVlogDefine = 0
+map <F4> :NERDTree<CR>
+map <F5> :RtlTree<CR>
 
 " "----------------------------------------------------------------------
 " " 编译运行 C/C++ 项目
