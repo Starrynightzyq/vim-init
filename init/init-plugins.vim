@@ -517,6 +517,7 @@ if index(g:bundle_group, 'leaderf') >= 0
 	endif
 endif
 
+Plug 'Starrynightzyq/automatic-verilog'
 
 "----------------------------------------------------------------------
 " 结束插件安装
