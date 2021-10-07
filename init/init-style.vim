@@ -44,7 +44,11 @@ set splitright
 "----------------------------------------------------------------------
 
 " 设置黑色背景
-set background=dark
+set background=light
+colorscheme desert                          "设定配色方案
+syntax on                                   "语法高亮
+highlight Pmenu    guibg=darkgrey  guifg=white  "修改自动补全窗口的配色
+highlight PmenuSel guibg=lightgrey guifg=white
 
 " 允许 256 色
 set t_Co=256

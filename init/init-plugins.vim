@@ -518,6 +518,33 @@ if index(g:bundle_group, 'leaderf') >= 0
 endif
 
 Plug 'Starrynightzyq/automatic-verilog'
+Plug 'vim-scripts/AutoComplPop'       "自动补全窗口弹出
+Plug 'vim-syntastic/syntastic'        "语法检查
+
+"语法检查插件配置
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+"显示消息气泡
+let g:syntastic_enable_balloons = 1
+
+"
+let g:syntastic_always_populate_loc_list = 1
+
+"不自动进行代码检查
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 0
+let g:syntastic_check_on_wq = 0
+let g:syntastic_mode_map = {
+        \ "mode": "passive",
+        \ "active_filetypes": [""],
+        \ "passive_filetypes": ["verilog"] }
+
+" 设置linter为iverilog,这里需要在系统变量PATH中添加iverilog的位置，这样shell才能识别iverilog指令
+let g:syntastic_verilog_checkers = ['iverilog']
+
+nnoremap check :SyntasticCheck<CR>
 
 "----------------------------------------------------------------------
 " 结束插件安装
