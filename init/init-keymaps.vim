@@ -221,6 +221,19 @@ elseif has('nvim')
 	tnoremap <m-q> <c-\><c-n>
 endif
 
+"----------------------------------------------------------------------
+" leaderf
+"----------------------------------------------------------------------
+nmap <unique> <leader>fr <Plug>LeaderfRgPrompt
+nmap <unique> <leader>fra <Plug>LeaderfRgCwordLiteralNoBoundary
+nmap <unique> <leader>frb <Plug>LeaderfRgCwordLiteralBoundary
+nmap <unique> <leader>frc <Plug>LeaderfRgCwordRegexNoBoundary
+nmap <unique> <leader>frd <Plug>LeaderfRgCwordRegexBoundary
+
+vmap <unique> <leader>fra <Plug>LeaderfRgVisualLiteralNoBoundary
+vmap <unique> <leader>frb <Plug>LeaderfRgVisualLiteralBoundary
+vmap <unique> <leader>frc <Plug>LeaderfRgVisualRegexNoBoundary
+vmap <unique> <leader>frd <Plug>LeaderfRgVisualRegexBoundary
 
 
 "----------------------------------------------------------------------

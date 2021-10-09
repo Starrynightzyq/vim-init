@@ -517,6 +517,9 @@ if index(g:bundle_group, 'leaderf') >= 0
 	endif
 endif
 
+"----------------------------------------------------------------------
+" my plugins
+"----------------------------------------------------------------------
 Plug 'Starrynightzyq/automatic-verilog'
 Plug 'vim-scripts/AutoComplPop'       "自动补全窗口弹出
 Plug 'vim-syntastic/syntastic'        "语法检查
