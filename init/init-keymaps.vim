@@ -253,7 +253,7 @@ vmap <unique> <leader>frd <Plug>LeaderfRgVisualRegexBoundary
 :map ;ow ebmsd^:.s/^ *\([a-zA-Z][a-zA-Z0-9_]*\).*$/        output  wire    \1,/<cr><F7>bb*N`sj
 
 "选中单词声明为output reg
-:map ;or ebmsd^:.s/^ *\([a-zA-Z][a-zA-Z0-9_]*\).*$/        output  reg     \1,/<cr><F7>bb*N`sj
+:map ;dor ebmsd^:.s/^ *\([a-zA-Z][a-zA-Z0-9_]*\).*$/        output  reg     \1,/<cr><F7>bb*N`sj
 
 " ------------------------对齐格式---------------------------
 "调整格式以便对齐（例化后的）
