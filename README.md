@@ -60,3 +60,26 @@ source ~/.vim/vim-init/init.vim
 # Credit
 
 TODO
+
+# Usage
+
+|                                                              |                   |
+| ----------------------- | ------------- |
+| preservim/nerdcommenter                | |
+| `<C-c>`                 | 注释/取消注释 |
+| Yggdroot/LeaderF |               |
+| `<C-p>`                 | 文件检索/快速跳转 |
+| [ripgrep](https://github.com/BurntSushi/ripgrep) or [ug](https://retzzz.github.io/dc9af5aa/) |               |
+| `<leader>fr`  | 将会在命令行显示 `:Leaderf rg -e`, 然后等待用户输入想要查询的正则表达式. |
+| `<leader>fra` | 将会直接查询光标所在的词语或者visual模式下选中的词语, 但是没有边界. 没有边界的意思是说如果你查`word`, 包含`abcwordxyz`的行也会被搜到. |
+| `<leader>frb` | 将会直接查询光标所在的词语,或者visual模式下选中的词语 但是有边界. 有边界的意思是说如果你查`word`, 包含`abcwordxyz` 的行不会被搜到, 只有包含类似`abc word xyz`字段的行才会被搜到. |
+| `<leader>frc` | 将会直接把光标所在的词语或者visual模式下选中的词语作为正则表达式检索, 但是没有边界. |
+| `<leader>frd` | 将会直接把光标所在的词语或者visual模式下选中的词语作为正则表达式检索, 但是有边界. |
+| [vim-surround](https://github.com/tpope/vim-surround) |  |
+| `v` 选中后，`S+<字符>` | 在选中的字符周围插入指定的 `<字符>` |
+| `cs<原字符><修改的字符>` | 修改包围的字符 |
+| `ds<字符>` | 删除包围的 `<字符>` |
+| [ludovicchabant](https://github.com/ludovicchabant)/**[vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)** | 自动生成 ctags，首先在工程目录下新建 `.project` |
+| `Ctrl + ]` | 跳转到对应的定义位 |
+| `Ctrl + o` | 回退到原来的位置 |
+
