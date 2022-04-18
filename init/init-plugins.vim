@@ -526,6 +526,13 @@ Plug 'vim-syntastic/syntastic'        "语法检查
 Plug 'preservim/nerdcommenter'        "自动注释
 Plug 'tpope/vim-surround'             "surround
 Plug 'ludovicchabant/vim-gutentags'   "auto catgs
+Plug 'iamcco/mathjax-support-for-mkdp' "markdown
+Plug 'iamcco/markdown-preview.vim'    "markdown
+Plug 'davidhalter/jedi-vim'           "自动补全 python
+
+" jedi-vim
+let g:jedi#environment_path = "/usr/bin/python"
+
 " 注释的时候自动加个空格, 强迫症必配
 let g:NERDSpaceDelims=1
 

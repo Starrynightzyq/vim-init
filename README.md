@@ -82,4 +82,10 @@ TODO
 | [ludovicchabant](https://github.com/ludovicchabant)/**[vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)** | 自动生成 ctags，首先在工程目录下新建 `.project` |
 | `Ctrl + ]` | 跳转到对应的定义位 |
 | `Ctrl + o` | 回退到原来的位置 |
+| [markdown-perview](https://github.com/iamcco/markdown-preview.vim)|       |
+| `:MarkdownPreview` | Preview markdown with default browser |
+| `:MarkdownPreviewStop` | Close the preview window and server |
+| python [ref](https://vimjc.com/vim-python-ide.html) |     |
+| [jedi-vim](https://github.com/davidhalter/jedi-vim) |     |
+| `<Ctrl-Space>` | 插入模式自动补齐 |
 
