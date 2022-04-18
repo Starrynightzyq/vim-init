@@ -529,6 +529,8 @@ Plug 'ludovicchabant/vim-gutentags'   "auto catgs
 Plug 'iamcco/mathjax-support-for-mkdp' "markdown
 Plug 'iamcco/markdown-preview.vim'    "markdown
 Plug 'davidhalter/jedi-vim'           "自动补全 python
+Plug 'beikome/cosme.vim'              "cosme 主题
+Plug 'junegunn/seoul256.vim'          "seoul256 主题
 
 " jedi-vim
 let g:jedi#environment_path = "/usr/bin/python"
