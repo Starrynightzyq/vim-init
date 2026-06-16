@@ -39,7 +39,17 @@ augroup PythonTab
 	au!
 	" 如果你需要 python 里用 tab，那么反注释下面这行字，否则vim会在打开py文件
 	" 时自动设置成空格缩进。
-	"au FileType python setlocal shiftwidth=4 tabstop=4 noexpandtab
+	au FileType python setlocal shiftwidth=4 softtabstop=4 tabstop=4 expandtab
 augroup END
 
+augroup VerilogTab
+    au!
+    au FileType verilog setlocal shiftwidth=3 softtabstop=3 tabstop=3 expandtab
+    au FileType systemverilog setlocal shiftwidth=3 softtabstop=3 tabstop=3 expandtab
+augroup END
+
+augroup VimTab
+    au!
+    au FileType vim setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4
+augroup END
 

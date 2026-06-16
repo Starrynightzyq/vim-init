@@ -14,9 +14,16 @@
 " 默认情况下的分组，可以再前面覆盖之
 "----------------------------------------------------------------------
 if !exists('g:bundle_group')
-	let g:bundle_group = ['basic', 'tags', 'enhanced', 'filetypes', 'textobj']
-	let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc']
-	let g:bundle_group += ['leaderf']
+	let g:bundle_group = ['basic']
+	let g:bundle_group += ['filetypes']
+	let g:bundle_group += ['echodoc']
+	let g:bundle_group += ['airline']
+	let g:bundle_group += ['enhanced']
+
+	" let g:bundle_group += ['leaderf']
+	" let g:bundle_group += ['textobj']
+	" let g:bundle_group += ['tags']
+	" let g:bundle_group += ['airline', 'nerdtree', 'ale']
 endif
 
 
@@ -42,7 +49,7 @@ call plug#begin(get(g:, 'bundle_home', '~/.vim/bundles'))
 "----------------------------------------------------------------------
 
 " 全文快速移动，<leader><leader>f{char} 即可触发
-Plug 'easymotion/vim-easymotion'
+" Plug 'easymotion/vim-easymotion'
 
 " 文件浏览器，代替 netrw
 Plug 'justinmk/vim-dirvish'
@@ -114,13 +121,13 @@ if index(g:bundle_group, 'basic') >= 0
 	Plug 't9md/vim-choosewin'
 
 	" 提供基于 TAGS 的定义预览，函数参数预览，quickfix 预览
-	Plug 'skywind3000/vim-preview'
+	" Plug 'skywind3000/vim-preview', { 'for': 'markdown' }
 
 	" Git 支持
-	Plug 'tpope/vim-fugitive'
+	" Plug 'tpope/vim-fugitive'
 
-	" 使用 ALT+E 来选择窗口
-	nmap <m-e> <Plug>(choosewin)
+	" 使用 ALT+W 来选择窗口
+	nmap <m-w> <Plug>(choosewin)
 
 	" 默认不显示 startify
 	let g:startify_disable_at_vimenter = 1
@@ -153,7 +160,8 @@ if index(g:bundle_group, 'enhanced') >= 0
 	Plug 'terryma/vim-expand-region'
 
 	" 快速文件搜索
-	Plug 'junegunn/fzf'
+	Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+	Plug 'junegunn/fzf.vim'
 
 	" 给不同语言提供字典补全，插入模式下 c-x c-k 触发
 	Plug 'asins/vim-dict'
@@ -175,12 +183,88 @@ if index(g:bundle_group, 'enhanced') >= 0
 	map <m--> <Plug>(expand_region_shrink)
 endif
 
+"----------------------------------------------------------------------
+" FZF, 文件、函数、变量等模糊匹配功能
+"----------------------------------------------------------------------
+" Initialize configuration dictionary
+let g:fzf_vim = {}
 
-" "----------------------------------------------------------------------
-" " 自动生成 ctags/gtags，并提供自动索引功能
-" " 不在 git/svn 内的项目，需要在项目根目录 touch 一个空的 .root 文件
-" " 详细用法见：https://zhuanlan.zhihu.com/p/36279445
-" "----------------------------------------------------------------------
+" 1. 快速打开文件搜索（Ctrl-t）
+nnoremap <silent> <C-t> :Files<CR>
+" 2. 全局内容搜索（leader+g）
+nnoremap <silent> <leader>g :Rg<CR>
+" 3. 已打开文件快速切换（leader+b）
+nnoremap <silent> <leader>b :Buffers<CR>
+
+" Preview window on the right with 50% width
+" CTRL-/ will toggle preview window.
+let g:fzf_vim.preview_window = ['right,50%', 'ctrl-/']
+let g:fzf_layout = { 'down': '40%' }
+let g:fzf_preview_cmd = 'head -100 {}'
+
+" vim 渲染优化
+" 只在操作结束后一次性刷新界面，中间过程不刷屏
+" 高速终端
+set lazyredraw
+set ttyfast
+
+" 异步
+let g:fzf_async = 1
+
+" 工具函数：查找文件所在的Tab页，找到返回编号，未找到返回0
+function! s:jump_to_existing_tab(filepath) abort
+  let l:target_file = fnamemodify(a:filepath, ':p')
+  for tabnr in range(1, tabpagenr('$'))
+    " 修复点：拼接完整命令字符串
+    execute 'tabnext ' . tabnr
+    for winnr in range(1, winnr('$'))
+      execute winnr . 'wincmd w'
+      if fnamemodify(bufname('%'), ':p') ==# l:target_file
+        return tabnr
+      endif
+    endfor
+  endfor
+  return 0
+endfunction
+
+" 智能打开函数：复用已有Tab或新建Tab
+function! s:smart_tab_open(lines) abort
+  for line in a:lines
+    let l:parts = split(line, ':', 1)
+    let l:file = l:parts[0]
+    let l:line_num = len(l:parts) >= 2 ? l:parts[1] : ''
+
+    let l:tabid = s:jump_to_existing_tab(l:file)
+    if l:tabid > 0
+      execute 'tabnext ' . l:tabid
+      if !empty(l:line_num)
+        execute l:line_num
+      endif
+    else
+      execute 'tabedit ' . fnameescape(l:file)
+      if !empty(l:line_num)
+        execute l:line_num
+      endif
+    endif
+  endfor
+endfunction
+
+let g:fzf_action = {
+  \ 'enter': function('s:smart_tab_open'),
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-s': 'split',
+  \ 'ctrl-v': 'vsplit' }
+
+" 解决 fzf 导致侧边栏消失
+" fzf 关闭后自动刷新 vim-signify
+" autocmd FileType fzf autocmd BufLeave <buffer> silent SignifyRefresh
+" autocmd TabEnter * set signcolumn=yes number
+
+"----------------------------------------------------------------------
+" 自动生成 ctags/gtags，并提供自动索引功能
+" 不在 git/svn 内的项目，需要在项目根目录 touch 一个空的 .root 文件
+" 详细用法见：https://zhuanlan.zhihu.com/p/36279445
+"----------------------------------------------------------------------
 " if index(g:bundle_group, 'tags') >= 0
 " 
 " 	" 提供 ctags/gtags 后台数据库自动更新功能
@@ -227,29 +311,29 @@ endif
 "----------------------------------------------------------------------
 " 文本对象：textobj 全家桶
 "----------------------------------------------------------------------
-if index(g:bundle_group, 'textobj') >= 0
-
-	" 基础插件：提供让用户方便的自定义文本对象的接口
-	Plug 'kana/vim-textobj-user'
-
-	" indent 文本对象：ii/ai 表示当前缩进，vii 选中当缩进，cii 改写缩进
-	Plug 'kana/vim-textobj-indent'
-
-	" 语法文本对象：iy/ay 基于语法的文本对象
-	Plug 'kana/vim-textobj-syntax'
-
-	" 函数文本对象：if/af 支持 c/c++/vim/java
-	Plug 'kana/vim-textobj-function', { 'for':['c', 'cpp', 'vim', 'java'] }
-
-	" 参数文本对象：i,/a, 包括参数或者列表元素
-	Plug 'sgur/vim-textobj-parameter'
-
-	" 提供 python 相关文本对象，if/af 表示函数，ic/ac 表示类
-	Plug 'bps/vim-textobj-python', {'for': 'python'}
-
-	" 提供 uri/url 的文本对象，iu/au 表示
-	Plug 'jceb/vim-textobj-uri'
-endif
+" if index(g:bundle_group, 'textobj') >= 0
+" 
+" 	" 基础插件：提供让用户方便的自定义文本对象的接口
+" 	Plug 'kana/vim-textobj-user'
+" 
+" 	" indent 文本对象：ii/ai 表示当前缩进，vii 选中当缩进，cii 改写缩进
+" 	Plug 'kana/vim-textobj-indent'
+" 
+" 	" 语法文本对象：iy/ay 基于语法的文本对象
+" 	Plug 'kana/vim-textobj-syntax'
+" 
+" 	" 函数文本对象：if/af 支持 c/c++/vim/java
+" 	Plug 'kana/vim-textobj-function', { 'for':['c', 'cpp', 'vim', 'java'] }
+" 
+" 	" 参数文本对象：i,/a, 包括参数或者列表元素
+" 	Plug 'sgur/vim-textobj-parameter'
+" 
+" 	" 提供 python 相关文本对象，if/af 表示函数，ic/ac 表示类
+" 	Plug 'bps/vim-textobj-python', {'for': 'python'}
+" 
+" 	" 提供 uri/url 的文本对象，iu/au 表示
+" 	Plug 'jceb/vim-textobj-uri'
+" endif
 
 
 "----------------------------------------------------------------------
@@ -415,153 +499,163 @@ endif
 "----------------------------------------------------------------------
 " LeaderF：CtrlP / FZF 的超级代替者，文件模糊匹配，tags/函数名 选择
 "----------------------------------------------------------------------
-if index(g:bundle_group, 'leaderf') >= 0
-	" 如果 vim 支持 python 则启用  Leaderf
-	if has('python') || has('python3')
-		Plug 'Yggdroot/LeaderF'
-
-		" CTRL+p 打开文件模糊匹配
-		let g:Lf_ShortcutF = '<c-p>'
-
-		" ALT+n 打开 buffer 模糊匹配
-		let g:Lf_ShortcutB = '<m-n>'
-
-		" CTRL+n 打开最近使用的文件 MRU，进行模糊匹配
-		noremap <c-n> :LeaderfMru<cr>
-
-		" ALT+p 打开函数列表，按 i 进入模糊匹配，ESC 退出
-		noremap <m-p> :LeaderfFunction!<cr>
-
-		" ALT+SHIFT+p 打开 tag 列表，i 进入模糊匹配，ESC退出
-		noremap <m-P> :LeaderfBufTag!<cr>
-
-		" ALT+n 打开 buffer 列表进行模糊匹配
-		noremap <m-n> :LeaderfBuffer<cr>
-
-		" ALT+m 全局 tags 模糊匹配
-		noremap <m-m> :LeaderfTag<cr>
-
-		" 最大历史文件保存 2048 个
-		let g:Lf_MruMaxFiles = 2048
-
-		" ui 定制
-		let g:Lf_StlSeparator = { 'left': '', 'right': '', 'font': '' }
-
-		" 如何识别项目目录，从当前文件目录向父目录递归知道碰到下面的文件/目录
-		let g:Lf_RootMarkers = ['.project', '.root', '.svn', '.git']
-		let g:Lf_WorkingDirectoryMode = 'Ac'
-		let g:Lf_WindowHeight = 0.30
-		let g:Lf_CacheDirectory = expand('~/.vim/cache')
-
-		" 显示绝对路径
-		let g:Lf_ShowRelativePath = 0
-
-		" 隐藏帮助
-		let g:Lf_HideHelp = 1
-
-		" 模糊匹配忽略扩展名
-		let g:Lf_WildIgnore = {
-					\ 'dir': ['.svn','.git','.hg'],
-					\ 'file': ['*.sw?','~$*','*.bak','*.exe','*.o','*.so','*.py[co]']
-					\ }
-
-		" MRU 文件忽略扩展名
-		let g:Lf_MruFileExclude = ['*.so', '*.exe', '*.py[co]', '*.sw?', '~$*', '*.bak', '*.tmp', '*.dll']
-		let g:Lf_StlColorscheme = 'powerline'
-
-		" 禁用 function/buftag 的预览功能，可以手动用 p 预览
-		let g:Lf_PreviewResult = {'Function':0, 'BufTag':0}
-
-		" 使用 ESC 键可以直接退出 leaderf 的 normal 模式
-		let g:Lf_NormalMap = {
-				\ "File":   [["<ESC>", ':exec g:Lf_py "fileExplManager.quit()"<CR>']],
-				\ "Buffer": [["<ESC>", ':exec g:Lf_py "bufExplManager.quit()"<cr>']],
-				\ "Mru": [["<ESC>", ':exec g:Lf_py "mruExplManager.quit()"<cr>']],
-				\ "Tag": [["<ESC>", ':exec g:Lf_py "tagExplManager.quit()"<cr>']],
-				\ "BufTag": [["<ESC>", ':exec g:Lf_py "bufTagExplManager.quit()"<cr>']],
-				\ "Function": [["<ESC>", ':exec g:Lf_py "functionExplManager.quit()"<cr>']],
-				\ }
-
-	else
-		" 不支持 python ，使用 CtrlP 代替
-		Plug 'ctrlpvim/ctrlp.vim'
-
-		" 显示函数列表的扩展插件
-		Plug 'tacahiroy/ctrlp-funky'
-
-		" 忽略默认键位
-		let g:ctrlp_map = ''
-
-		" 模糊匹配忽略
-		let g:ctrlp_custom_ignore = {
-		  \ 'dir':  '\v[\/]\.(git|hg|svn)$',
-		  \ 'file': '\v\.(exe|so|dll|mp3|wav|sdf|suo|mht)$',
-		  \ 'link': 'some_bad_symbolic_links',
-		  \ }
-
-		" 项目标志
-		let g:ctrlp_root_markers = ['.project', '.root', '.svn', '.git']
-		let g:ctrlp_working_path = 0
-
-		" CTRL+p 打开文件模糊匹配
-		noremap <c-p> :CtrlP<cr>
-
-		" CTRL+n 打开最近访问过的文件的匹配
-		noremap <c-n> :CtrlPMRUFiles<cr>
-
-		" ALT+p 显示当前文件的函数列表
-		noremap <m-p> :CtrlPFunky<cr>
-
-		" ALT+n 匹配 buffer
-		noremap <m-n> :CtrlPBuffer<cr>
-	endif
-endif
+" if index(g:bundle_group, 'leaderf') >= 0
+" 	" 如果 vim 支持 python 则启用  Leaderf
+" 	if has('python') || has('python3')
+" 		Plug 'Yggdroot/LeaderF'
+" 
+" 		" CTRL+p 打开文件模糊匹配
+" 		let g:Lf_ShortcutF = '<c-p>'
+" 
+" 		" ALT+n 打开 buffer 模糊匹配
+" 		let g:Lf_ShortcutB = '<m-n>'
+" 
+" 		" CTRL+n 打开最近使用的文件 MRU，进行模糊匹配
+" 		noremap <c-n> :LeaderfMru<cr>
+" 
+" 		" ALT+p 打开函数列表，按 i 进入模糊匹配，ESC 退出
+" 		noremap <m-p> :LeaderfFunction!<cr>
+" 
+" 		" ALT+SHIFT+p 打开 tag 列表，i 进入模糊匹配，ESC退出
+" 		noremap <m-P> :LeaderfBufTag!<cr>
+" 
+" 		" ALT+n 打开 buffer 列表进行模糊匹配
+" 		noremap <m-n> :LeaderfBuffer<cr>
+" 
+" 		" ALT+m 全局 tags 模糊匹配
+" 		noremap <m-m> :LeaderfTag<cr>
+" 
+" 		" 最大历史文件保存 2048 个
+" 		let g:Lf_MruMaxFiles = 2048
+" 
+" 		" ui 定制
+" 		let g:Lf_StlSeparator = { 'left': '', 'right': '', 'font': '' }
+" 
+" 		" 如何识别项目目录，从当前文件目录向父目录递归知道碰到下面的文件/目录
+" 		let g:Lf_RootMarkers = ['.project', '.root', '.svn', '.git']
+" 		let g:Lf_WorkingDirectoryMode = 'Ac'
+" 		let g:Lf_WindowHeight = 0.30
+" 		let g:Lf_CacheDirectory = expand('~/.vim/cache')
+" 
+" 		" 显示绝对路径
+" 		let g:Lf_ShowRelativePath = 0
+" 
+" 		" 隐藏帮助
+" 		let g:Lf_HideHelp = 1
+" 
+" 		" 模糊匹配忽略扩展名
+" 		let g:Lf_WildIgnore = {
+" 					\ 'dir': ['.svn','.git','.hg'],
+" 					\ 'file': ['*.sw?','~$*','*.bak','*.exe','*.o','*.so','*.py[co]']
+" 					\ }
+" 
+" 		" MRU 文件忽略扩展名
+" 		let g:Lf_MruFileExclude = ['*.so', '*.exe', '*.py[co]', '*.sw?', '~$*', '*.bak', '*.tmp', '*.dll']
+" 		let g:Lf_StlColorscheme = 'powerline'
+" 
+" 		" 禁用 function/buftag 的预览功能，可以手动用 p 预览
+" 		let g:Lf_PreviewResult = {'Function':0, 'BufTag':0}
+" 
+" 		" 使用 ESC 键可以直接退出 leaderf 的 normal 模式
+" 		let g:Lf_NormalMap = {
+" 				\ "File":   [["<ESC>", ':exec g:Lf_py "fileExplManager.quit()"<CR>']],
+" 				\ "Buffer": [["<ESC>", ':exec g:Lf_py "bufExplManager.quit()"<cr>']],
+" 				\ "Mru": [["<ESC>", ':exec g:Lf_py "mruExplManager.quit()"<cr>']],
+" 				\ "Tag": [["<ESC>", ':exec g:Lf_py "tagExplManager.quit()"<cr>']],
+" 				\ "BufTag": [["<ESC>", ':exec g:Lf_py "bufTagExplManager.quit()"<cr>']],
+" 				\ "Function": [["<ESC>", ':exec g:Lf_py "functionExplManager.quit()"<cr>']],
+" 				\ }
+" 
+" 	else
+" 		" 不支持 python ，使用 CtrlP 代替
+" 		Plug 'ctrlpvim/ctrlp.vim'
+" 
+" 		" 显示函数列表的扩展插件
+" 		Plug 'tacahiroy/ctrlp-funky'
+" 
+" 		" 忽略默认键位
+" 		let g:ctrlp_map = ''
+" 
+" 		" 模糊匹配忽略
+" 		let g:ctrlp_custom_ignore = {
+" 		  \ 'dir':  '\v[\/]\.(git|hg|svn)$',
+" 		  \ 'file': '\v\.(exe|so|dll|mp3|wav|sdf|suo|mht)$',
+" 		  \ 'link': 'some_bad_symbolic_links',
+" 		  \ }
+" 
+" 		" 项目标志
+" 		let g:ctrlp_root_markers = ['.project', '.root', '.svn', '.git']
+" 		let g:ctrlp_working_path = 0
+" 
+" 		" CTRL+p 打开文件模糊匹配
+" 		noremap <c-p> :CtrlP<cr>
+" 
+" 		" CTRL+n 打开最近访问过的文件的匹配
+" 		noremap <c-n> :CtrlPMRUFiles<cr>
+" 
+" 		" ALT+p 显示当前文件的函数列表
+" 		noremap <m-p> :CtrlPFunky<cr>
+" 
+" 		" ALT+n 匹配 buffer
+" 		noremap <m-n> :CtrlPBuffer<cr>
+" 	endif
+" endif
 
 "----------------------------------------------------------------------
 " my plugins
 "----------------------------------------------------------------------
 Plug 'Starrynightzyq/automatic-verilog'
 Plug 'vim-scripts/AutoComplPop'       "自动补全窗口弹出
-Plug 'vim-syntastic/syntastic'        "语法检查
+" Plug 'vim-syntastic/syntastic'        "语法检查
 Plug 'preservim/nerdcommenter'        "自动注释
 Plug 'tpope/vim-surround'             "surround
-Plug 'ludovicchabant/vim-gutentags'   "auto catgs
+" Plug 'ludovicchabant/vim-gutentags'   "auto catgs
 Plug 'iamcco/mathjax-support-for-mkdp' "markdown
 Plug 'iamcco/markdown-preview.vim'    "markdown
-Plug 'davidhalter/jedi-vim'           "自动补全 python
+" Plug 'davidhalter/jedi-vim'           "自动补全 python
 Plug 'beikome/cosme.vim'              "cosme 主题
 Plug 'junegunn/seoul256.vim'          "seoul256 主题
+Plug 'junegunn/vim-easy-align'          "verilog align
+Plug 'dhruvasagar/vim-table-mode'       "automatic table creator, \tm
+Plug 'yuttie/comfortable-motion.vim'    "平滑滚动
 
-" jedi-vim
-let g:jedi#environment_path = "/usr/bin/python"
+"----------------------------------------------------------------------
+" vim-smooth-scroll
+"----------------------------------------------------------------------
+noremap <silent> <c-u> :call smooth_scroll#up(&scroll, 0, 2)<CR>
+noremap <silent> <c-d> :call smooth_scroll#down(&scroll, 0, 2)<CR>
+noremap <silent> <c-b> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
+noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 
 " 注释的时候自动加个空格, 强迫症必配
-let g:NERDSpaceDelims=1
+let g:NERDSpaceDelims = 1
+" 关闭Python特殊注释分支，统一通用规则，消除双空格bug
+let g:NERDAltDelims_python = 1
 
-"语法检查插件配置
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-
-"显示消息气泡
-let g:syntastic_enable_balloons = 1
-
-"
-let g:syntastic_always_populate_loc_list = 1
-
-"不自动进行代码检查
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 0
-let g:syntastic_check_on_wq = 0
-let g:syntastic_mode_map = {
-        \ "mode": "passive",
-        \ "active_filetypes": [""],
-        \ "passive_filetypes": ["verilog"] }
-
-" 设置linter为iverilog,这里需要在系统变量PATH中添加iverilog的位置，这样shell才能识别iverilog指令
-let g:syntastic_verilog_checkers = ['iverilog']
-
-nnoremap check :SyntasticCheck<CR>
+" "语法检查插件配置
+" set statusline+=%#warningmsg#
+" set statusline+=%{SyntasticStatuslineFlag()}
+" set statusline+=%*
+" 
+" "显示消息气泡
+" let g:syntastic_enable_balloons = 1
+" 
+" "
+" let g:syntastic_always_populate_loc_list = 1
+" 
+" "不自动进行代码检查
+" let g:syntastic_auto_loc_list = 1
+" let g:syntastic_check_on_open = 0
+" let g:syntastic_check_on_wq = 0
+" let g:syntastic_mode_map = {
+"         \ "mode": "passive",
+"         \ "active_filetypes": [""],
+"         \ "passive_filetypes": ["verilog"] }
+" 
+" " 设置linter为iverilog,这里需要在系统变量PATH中添加iverilog的位置，这样shell才能识别iverilog指令
+" let g:syntastic_verilog_checkers = ['iverilog']
+" 
+" nnoremap check :SyntasticCheck<CR>
 
 " =============================================================
 "                        成对标签设置
@@ -594,25 +688,25 @@ let b:match_words=
   \ '\<fork\>:\<join\>\|\<join_any\>\|\<join_none\>,' .
   \ '`ifdef\>:`else\>:`endif\>,'
 
-" ludovicchabant/vim-gutentags
-" gutentags搜索工程目录的标志，碰到这些文件/目录名就停止向上一级目录递归 "
-let g:gutentags_project_root = ['.root', '.svn', '.git', '.project']
-
-" 所生成的数据文件的名称 "
-let g:gutentags_ctags_tagfile = '.tags'
-
-" 将自动生成的 tags 文件全部放入 ~/.cache/tags 目录中，避免污染工程目录 "
-let s:vim_tags = expand('~/.cache/tags')
-let g:gutentags_cache_dir = s:vim_tags
-" 检测 ~/.cache/tags 不存在就新建 "
-if !isdirectory(s:vim_tags)
-   silent! call mkdir(s:vim_tags, 'p')
-endif
-
-" 配置 ctags 的参数 "
-let g:gutentags_ctags_extra_args = ['--fields=+niazS', '--extra=+q']
-let g:gutentags_ctags_extra_args += ['--c++-kinds=+pxI']
-let g:gutentags_ctags_extra_args += ['--c-kinds=+px']
+" " ludovicchabant/vim-gutentags
+" " gutentags搜索工程目录的标志，碰到这些文件/目录名就停止向上一级目录递归 "
+" let g:gutentags_project_root = ['.root', '.svn', '.git', '.project']
+" 
+" " 所生成的数据文件的名称 "
+" let g:gutentags_ctags_tagfile = '.tags'
+" 
+" " 将自动生成的 tags 文件全部放入 ~/.cache/tags 目录中，避免污染工程目录 "
+" let s:vim_tags = expand('~/.cache/tags')
+" let g:gutentags_cache_dir = s:vim_tags
+" " 检测 ~/.cache/tags 不存在就新建 "
+" if !isdirectory(s:vim_tags)
+"    silent! call mkdir(s:vim_tags, 'p')
+" endif
+" 
+" " 配置 ctags 的参数 "
+" let g:gutentags_ctags_extra_args = ['--fields=+niazS', '--extra=+q']
+" let g:gutentags_ctags_extra_args += ['--c++-kinds=+pxI']
+" let g:gutentags_ctags_extra_args += ['--c-kinds=+px']
 
 "----------------------------------------------------------------------
 " 结束插件安装

@@ -267,7 +267,8 @@ vmap <unique> <leader>frd <Plug>LeaderfRgVisualRegexBoundary
 
 "----------------------------------------------------------------------
 "快速注释
-:map <C-c> <ESC><leader>c<space><CR>a
+:nmap <C-c> <ESC><leader>c<space><CR>a
+:vmap <C-c> <leader>cl<CR>
 let t:RtlTreeVlogDefine = 0
 map <F4> :NERDTree<CR>
 map <F5> :RtlTree<CR>
@@ -379,6 +380,9 @@ map <F5> :RtlTree<CR>
 " 				\ '<root>' <cr>
 " endif
 
+"----------------------------------------------------------------------
+" verilog format
+"----------------------------------------------------------------------
 command! -range -nargs=0 Vdfmt call FormatVerilogSignalDeclaration()
 
 function! FormatVerilogSignalDeclaration()
@@ -441,3 +445,83 @@ function! FormatVerilogSignalDeclaration()
 
 endfunction
 
+" 新标签中打开文件
+nnoremap gf <C-w>gf
+nnoremap gF <C-w>gF
+
+" 快速切换上/下标签页（原生的 gt/gT 功能）
+" CTRL+左/右方向键
+nnoremap <C-Left> gT
+nnoremap <C-Right> gt
+
+"----------------------------------------------------------------------
+" Tabspace 按空格对齐多行代码
+"----------------------------------------------------------------------
+command! -range -nargs=0 Tabspace execute "'<,'>Tabularize / [^ ]/l0"
+
+"----------------------------------------------------------------------
+" NumberedColumn 可视选区插入递增数字
+"----------------------------------------------------------------------
+command! -nargs=? -range=% NC call NumberedColumn(<f-args>)
+
+function! NumberedColumn(start_number) range
+	let start_number = a:start_number
+	if empty(start_number)
+		let start_number = 0
+	endif
+
+	let col_start = virtcol("'<")
+	let col_end = virtcol("'>")
+
+	let line_num = 0
+	for i in range(line("'<"), line("'>"))
+		let new_number = line_num + start_number
+		let insert_text = printf("%*s", col_end - col_start + 1, new_number)
+		call setline(i, getline(i)[0:col_start - 1] . insert_text . getline(i)[col_end:])
+		let line_num += 1
+	endfor
+endfunction
+
+"----------------------------------------------------------------------
+" 命名风格转换快捷键 Ctrl+m
+"----------------------------------------------------------------------
+vnoremap <C-m> yea<C-R>=SChangeCaseComplete()<CR>
+
+func! SChangeCaseComplete()
+  let word = @0
+  let arr  = []
+  let i    = 0
+  let az_  = ''
+  let aZ   = ''
+  let flag = 0
+
+  if stridx(word, '_') > 0
+    let word = tolower(word)
+  endif
+
+  while i < strlen(word)
+    if char2nr(word[i]) >= 97 && char2nr(word[i]) <= 122
+      let az_ = az_.word[i]
+      let aZ  = flag ? aZ.toupper(word[i]) : aZ.word[i]
+      let flag = 0
+    else
+      if word[i] != '_'
+        let az_ = az_.'_'.tolower(word[i])
+        let aZ = aZ.toupper(word[i])
+      else
+        let az_ = az_.tolower(word[i])
+        let flag = 1
+      endif
+    endif
+    let i += 1
+  endwhile
+
+  call add(arr, {'word': word})
+  call add(arr, {'word': toupper(word)})
+  call add(arr, {'word': tolower(word)})
+  call add(arr, {'word': az_})
+  call add(arr, {'word': toupper(az_)})
+  call add(arr, {'word': aZ})
+  call complete(col('.') - strlen(word), arr)
+  return ''
+endfunc

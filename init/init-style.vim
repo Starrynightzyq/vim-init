@@ -37,6 +37,8 @@ set showcmd
 
 " 水平切割窗口时，默认在右边显示新窗口
 set splitright
+" 垂直切割窗口时，默认在下边显示新窗口
+set splitbelow
 
 
 "----------------------------------------------------------------------
@@ -55,6 +57,14 @@ set t_Co=256
 
 " 设置颜色主题，会在所有 runtimepaths 的 colors 目录寻找同名配置
 color seoul256
+
+" front
+set guifont=Monosapce\ 12
+
+" 关闭鼠标
+set mouse=
+" 恢复鼠标
+" set mouse=a
 
 
 "----------------------------------------------------------------------
@@ -291,5 +301,15 @@ set tabline=%!Vim_NeatTabLine()
 set guitablabel=%{Vim_NeatGuiTabLabel()}
 set guitabtooltip=%{Vim_NeatGuiTabTip()}
 
+"----------------------------------------------------------------------
+" 静音配置
+"----------------------------------------------------------------------
+" 基础静音配置
+set noerrorbells visualbell t_vb=
+set belloff=all
 
+" GUI环境专用配置（防止重置）
+if has('autocmd')
+  autocmd GUIEnter * set visualbell t_vb=
+endif
 
